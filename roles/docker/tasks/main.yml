@@ -1,0 +1,43 @@
+#Ubuntu Server main.yml
+- name: Install docker
+  apt:
+    name: docker.io
+    state: latest
+
+- name: Enable docker socket
+  service:
+    name: docker
+    state: restarted
+    enabled: true
+
+- name: Start docker service
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Add docker to group
+  command: sudo usermod -aG docker aquino-jk
+
+- name: Restart docker
+  command: sudo systemctl restart docker
+
+- name: Import Dockerfile
+  copy:
+    src: ./Dockerfile
+    dest: /home/aquino-jk
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Install and build Dockerfile
+  shell:
+    docker build - < Dockerfile
+
+- name: Pulling docker image
+  shell:
+    docker pull ubuntu/apache2
+
+- name: Accessing Containerized Apps
+  shell:
+    docker run -it -d -p 8080:80 ubuntu/apache2
